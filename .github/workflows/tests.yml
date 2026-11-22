@@ -1,0 +1,59 @@
+# Tests against the Casa revision pinned in tests/casa-pin.txt.
+#
+# The pin is a commit on Casa's main (only published commits). It must contain
+# the Casa release this component needs: test_casa_has_the_release_this_component_needs
+# checks that its plugin manifest takes callsCasa and a driver sweep, that its role
+# schema has session.long_runs and own_chat, and that its persona manifest accepts
+# avatar.jpg, and fails loudly until it does.
+name: tests
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  casa:
+    # Casa's image runs Debian bookworm's python3; Casa's own CI tests on 3.11.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Read the Casa pin
+        id: pin
+        run: |
+          set -euo pipefail
+          sha=$(tr -d '[:space:]' < tests/casa-pin.txt)
+          [[ "$sha" =~ ^[0-9a-f]{40}$ ]] || { echo "tests/casa-pin.txt is not a commit SHA" >&2; exit 1; }
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v7
+        with:
+          repository: bonzanni/ha-casa-app
+          ref: ${{ steps.pin.outputs.sha }}
+          path: casa-src
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+
+      - name: Install test dependencies and Casa's own
+        # Casa's loaders (persona, role, manifest) import jsonschema,
+        # markdown_it, aiohttp and mcp: the same install Casa's CI does.
+        run: pip install -r tests/requirements.txt -r casa-src/casa/requirements.txt
+
+      - name: Run tests
+        env:
+          CASA_ROOT: ${{ github.workspace }}/casa-src
+        # -rs prints every skip with its reason.
+        run: python3 -m pytest tests -q -rs
+
+      - name: Digests match the tracked tree
+        run: python3 scripts/digests.py --check
+

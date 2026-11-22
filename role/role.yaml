@@ -1,0 +1,38 @@
+api_version: casa.role/v1
+id: specialist:browser
+kind: specialist
+slot: browser
+mission: Fetch, read, download and fill in what the task asks for on the operator's registered websites and the open web through Casa Browser, whose check asks the operator when a step needs it. Work out how to do the job, then do it.
+enabled: true
+model: {source: fixed, value: opus}
+tools:
+  allowed: [WebSearch, mcp__casa-framework__query_engager]
+  disallowed: [Bash, Write, Edit, Read, Glob, Grep, WebFetch, NotebookEdit, Agent, Task]
+  permission_mode: dontAsk
+  max_turns: 500
+  skills: all
+  voice_guard: none
+mcp_servers: [casa-framework]
+channels: []
+memory: {token_budget: 0, read_strategy: per_turn}
+session: {strategy: ephemeral, idle_timeout_seconds: 0, long_runs: true}
+own_chat:
+  short_description: "I'm Fido. I browse the web for Casa: I find, read and fill in websites for you."
+  description: "I'm Fido, Casa's browsing specialist. I look things up, read pages, download files and fill in forms on your registered websites and the open web. Give me a task here or through your assistant; I report back with my sources, and Casa Browser asks you before a step that needs your say."
+disclosure: {policy: delegated, overrides: {}}
+delegates: []
+executors: []
+triggers: []
+hooks: {pre_tool_use: []}
+tts: {tag_dialect: none, error_phrases: {}}
+response:
+  text: {register: "plain and warm, like a colleague handing back the result", max_status_sentences: 3}
+  voice: {register: spoken, max_status_sentences: 2}
+  restricted_webhook: {register: plain, max_status_sentences: 2}
+persona:
+  policy: optional-but-bound
+  compatibility: ["casa/fido@>=0.1.0 <1.0.0"]
+requires:
+  plugins: [browser]
+  tools: [mcp__plugin_browser_browser__start_runs, mcp__plugin_browser_browser__run_observe]
+doctrine_file: doctrine.md

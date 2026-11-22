@@ -1,0 +1,26 @@
+{
+  "api_version": "casa.specialist-component/v1",
+  "component_id": "casa/browser",
+  "version": "0.1.35",
+  "default_persona": {
+    "ref": "casa/fido@0.1.35",
+    "checksum": "sha256:7c0accce0ca192c6a21a1d6c49f765d5cf976769e3a9e25f97d3c1100e029097"
+  },
+  "dependencies": [
+    {
+      "kind": "persona",
+      "identifier": "casa/fido@0.1.35",
+      "digest": "sha256:7c0accce0ca192c6a21a1d6c49f765d5cf976769e3a9e25f97d3c1100e029097"
+    },
+    {
+      "kind": "plugin/implementation",
+      "identifier": "browser",
+      "digest": "sha256:e3dd621992e90aa6627ea2caba014e54312e6094cf3f28ec26172ca7f0efb885",
+      "source": {
+        "type": "bundled",
+        "path": "plugins/browser"
+      }
+    }
+  ],
+  "checksum": "sha256:5bf5f1f78a907b92799895dcd2213b7ba19b508cfd74f56d498e32bfbf5f1e2d"
+}

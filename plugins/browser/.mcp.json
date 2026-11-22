@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "browser": {
+      "command": "python3",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/server/browser_server.py"],
+      "env": {
+        "CASA_PLUGIN_BROWSER_APP_URL": "${CASA_PLUGIN_BROWSER_APP_URL:-}",
+        "CASA_PLUGIN_BROWSER_HA_URL": "${CASA_PLUGIN_BROWSER_HA_URL:-}"
+      }
+    }
+  }
+}

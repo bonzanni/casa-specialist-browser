@@ -1,0 +1,6 @@
+# Test-only dependencies. The plugin under plugins/browser/ is standard
+# library only: Casa runs plugin servers with the container's python3.
+pytest
+PyYAML
+rfc8785
+aiohttp

@@ -1,0 +1,18 @@
+# Local working material, never shipped.
+docs/
+.superpowers/
+# Local tooling state, including linked git worktrees.
+.claude/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+*.egg-info/
+
+# Worktrees / scratch
+.worktrees/
+
+# CI checks Casa out here (tests.yml)
+casa-src/

@@ -1,0 +1,267 @@
+{
+  "name": "browser",
+  "version": "0.1.0",
+  "description": "Fido's typed client of the Casa Browser app: runs on the operator's registered sites and the open web, with its questions and files routed through Casa.",
+  "author": {
+    "name": "Nicola Bonzanni",
+    "url": "https://github.com/bonzanni"
+  },
+  "homepage": "https://github.com/bonzanni/casa-specialist-browser",
+  "repository": "https://github.com/bonzanni/casa-specialist-browser",
+  "license": "MIT",
+  "keywords": [
+    "casa",
+    "browser",
+    "mcp"
+  ],
+  "casa": {
+    "setupTool": "setup_browser",
+    "resultContract": {
+      "version": 1,
+      "tools": {
+        "browser_status": {
+          "result": "capability",
+          "provides": [
+            "notice"
+          ],
+          "delivers": {
+            "notice": "operator_message"
+          },
+          "callsCasa": true
+        },
+        "start_runs": {
+          "result": "safe",
+          "callsCasa": true
+        },
+        "continue_run": {
+          "result": "safe",
+          "callsCasa": true
+        },
+        "run_observe": {
+          "result": "safe",
+          "callsCasa": true
+        },
+        "run_act": {
+          "result": "safe",
+          "callsCasa": true
+        },
+        "run_look": {
+          "result": "safe",
+          "callsCasa": true
+        },
+        "run_read": {
+          "result": "safe",
+          "callsCasa": true
+        },
+        "run_search": {
+          "result": "safe",
+          "callsCasa": true
+        },
+        "run_fetch": {
+          "result": "safe",
+          "callsCasa": true
+        },
+        "run_wait": {
+          "result": "safe",
+          "callsCasa": true
+        },
+        "run_download": {
+          "result": "safe",
+          "callsCasa": true
+        },
+        "run_archive": {
+          "result": "safe",
+          "callsCasa": true
+        },
+        "run_records": {
+          "result": "safe",
+          "callsCasa": true
+        },
+        "run_finish": {
+          "result": "capability",
+          "provides": [
+            "notice"
+          ],
+          "delivers": {
+            "notice": "operator_message"
+          },
+          "callsCasa": true
+        },
+        "run_cancel": {
+          "result": "safe",
+          "callsCasa": true
+        },
+        "request_login_code": {
+          "result": "safe",
+          "callsCasa": true
+        },
+        "run_login_code": {
+          "result": "safe",
+          "callsCasa": true
+        },
+        "ask_forget_login": {
+          "result": "capability",
+          "provides": [
+            "card"
+          ],
+          "delivers": {
+            "card": "operator_proposal"
+          },
+          "callsCasa": true
+        },
+        "ask_keep_going": {
+          "result": "capability",
+          "provides": [
+            "card"
+          ],
+          "delivers": {
+            "card": "operator_proposal"
+          },
+          "callsCasa": true
+        },
+        "post_question": {
+          "result": "capability",
+          "provides": [
+            "card"
+          ],
+          "delivers": {
+            "card": "operator_proposal"
+          },
+          "callsCasa": true
+        },
+        "ask_sign_in": {
+          "result": "capability",
+          "provides": [
+            "card"
+          ],
+          "delivers": {
+            "card": "operator_proposal"
+          },
+          "callsCasa": true
+        },
+        "tap_live": {
+          "result": "capability",
+          "provides": [
+            "card"
+          ],
+          "delivers": {
+            "card": "operator_proposal"
+          },
+          "callsCasa": true
+        },
+        "apply_tap": {
+          "result": "safe",
+          "callsCasa": true
+        },
+        "show_screenshot": {
+          "result": "capability",
+          "provides": [
+            "file"
+          ],
+          "delivers": {
+            "file": "operator_file"
+          },
+          "callsCasa": true
+        },
+        "request_live_view": {
+          "result": "capability",
+          "provides": [
+            "live"
+          ],
+          "delivers": {
+            "live": "operator_link"
+          },
+          "callsCasa": true
+        },
+        "site_setup_link": {
+          "result": "capability",
+          "provides": [
+            "setup"
+          ],
+          "delivers": {
+            "setup": "operator_link"
+          },
+          "callsCasa": true
+        },
+        "deliver_file": {
+          "result": "capability",
+          "provides": [
+            "file"
+          ],
+          "delivers": {
+            "file": "operator_file"
+          },
+          "filename": true,
+          "callsCasa": true
+        },
+        "handoff_files": {
+          "result": "safe",
+          "callsCasa": true
+        },
+        "progress": {
+          "result": "capability",
+          "provides": [
+            "beat"
+          ],
+          "delivers": {
+            "beat": "operator_message"
+          },
+          "callsCasa": true
+        },
+        "show_sources": {
+          "result": "capability",
+          "provides": [
+            "sources"
+          ],
+          "delivers": {
+            "sources": "operator_message"
+          },
+          "callsCasa": true
+        },
+        "runs_needing_driver": {
+          "result": "safe"
+        },
+        "stop_runs": {
+          "result": "safe"
+        }
+      }
+    },
+    "provides_tools": [
+      "mcp__plugin_browser_browser__browser_status",
+      "mcp__plugin_browser_browser__start_runs",
+      "mcp__plugin_browser_browser__continue_run",
+      "mcp__plugin_browser_browser__run_observe",
+      "mcp__plugin_browser_browser__run_look",
+      "mcp__plugin_browser_browser__run_read",
+      "mcp__plugin_browser_browser__run_act",
+      "mcp__plugin_browser_browser__run_search",
+      "mcp__plugin_browser_browser__run_fetch",
+      "mcp__plugin_browser_browser__run_wait",
+      "mcp__plugin_browser_browser__run_download",
+      "mcp__plugin_browser_browser__run_archive",
+      "mcp__plugin_browser_browser__run_records",
+      "mcp__plugin_browser_browser__run_finish",
+      "mcp__plugin_browser_browser__run_cancel",
+      "mcp__plugin_browser_browser__request_login_code",
+      "mcp__plugin_browser_browser__run_login_code",
+      "mcp__plugin_browser_browser__ask_forget_login",
+      "mcp__plugin_browser_browser__ask_keep_going",
+      "mcp__plugin_browser_browser__post_question",
+      "mcp__plugin_browser_browser__ask_sign_in",
+      "mcp__plugin_browser_browser__tap_live",
+      "mcp__plugin_browser_browser__apply_tap",
+      "mcp__plugin_browser_browser__show_screenshot",
+      "mcp__plugin_browser_browser__request_live_view",
+      "mcp__plugin_browser_browser__site_setup_link",
+      "mcp__plugin_browser_browser__deliver_file",
+      "mcp__plugin_browser_browser__handoff_files",
+      "mcp__plugin_browser_browser__progress",
+      "mcp__plugin_browser_browser__show_sources",
+      "mcp__plugin_browser_browser__runs_needing_driver",
+      "mcp__plugin_browser_browser__stop_runs",
+      "mcp__plugin_browser_browser__setup_browser"
+    ],
+    "driverSweep": "runs_needing_driver",
+    "stopTool": "stop_runs"
+  }
+}
