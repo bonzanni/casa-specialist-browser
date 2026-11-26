@@ -6,6 +6,7 @@ exactly the requests it made before."""
 from __future__ import annotations
 
 import json
+import threading
 
 import pytest
 
@@ -58,15 +59,15 @@ def _tools_call(name="browser_status", meta=None, **arguments):
 
 @pytest.fixture
 def no_call_id():
-    casa_broker.CALL_ID = None
+    casa_broker.set_call_id(None)
     yield
-    casa_broker.CALL_ID = None
+    casa_broker.set_call_id(None)
 
 
 @pytest.mark.parametrize("route", list(ROUTES))
 def test_every_route_carries_the_id(broker, no_call_id, route):
     helper, keys = ROUTES[route]
-    casa_broker.CALL_ID = ID
+    casa_broker.set_call_id(ID)
     helper(broker)
     path, body = broker.calls[-1]
     assert path == route
@@ -88,7 +89,7 @@ def test_the_server_keeps_the_calls_id_for_the_call_only(broker, no_call_id, mon
     seen = []
 
     def tool_call(name, arguments):
-        seen.append(casa_broker.CALL_ID)
+        seen.append(casa_broker.call_id())
         casa_broker.deposit_message("notice", "Three notices.", key="notices-1")
         if raises:
             raise RuntimeError("the tool failed")
@@ -103,7 +104,7 @@ def test_the_server_keeps_the_calls_id_for_the_call_only(broker, no_call_id, mon
         assert browser_server.handle(req)["result"]["isError"] is False
     assert seen == [ID]
     assert broker.calls[-1][1]["tool_use_id"] == ID
-    assert casa_broker.CALL_ID is None
+    assert casa_broker.call_id() is None
 
 
 @pytest.mark.parametrize("meta", [{"claudecode/toolUseId": 5},
@@ -117,7 +118,7 @@ def test_a_bad_id_is_ignored(broker, no_call_id, monkeypatch, meta):
     seen = []
 
     def tool_call(name, arguments):
-        seen.append(casa_broker.CALL_ID)
+        seen.append(casa_broker.call_id())
         casa_broker.deposit_message("notice", "Three notices.", key="notices-1")
         return "done", False
 
@@ -137,7 +138,7 @@ def test_a_call_casa_makes_itself_has_no_id(env, no_call_id, monkeypatch):
     real_call = tooling.call
 
     def spy(name, arguments):
-        seen.append((name, casa_broker.CALL_ID))
+        seen.append((name, casa_broker.call_id()))
         return real_call(name, arguments)
 
     monkeypatch.setattr(tooling, "call", spy)
@@ -157,4 +158,64 @@ def test_a_call_casa_makes_itself_has_no_id(env, no_call_id, monkeypatch):
                     ("stop_runs", None), ("stop_runs", None)]
     assert answers[2]["outcome"] == "stopped"
     assert env.casa.calls == []
-    assert casa_broker.CALL_ID is None
+    assert casa_broker.call_id() is None
+
+
+def _bodies(broker, route):
+    return [body for path, body in broker.calls if path == route]
+
+
+def test_only_the_serving_thread_names_the_call(broker, no_call_id):
+    """The id belongs to the thread that serves the call: a request another thread posts at
+    the same moment is today's request."""
+    casa_broker.set_call_id(ID)
+    worker = threading.Thread(
+        target=lambda: casa_broker.deposit_message("notice", "From elsewhere.", key="other-1"))
+    try:
+        worker.start()
+        worker.join(10)
+        assert not worker.is_alive()
+        casa_broker.deposit_message("notice", "From the call.", key="served-1")
+    finally:
+        worker.join(10)
+    by_key = {b["key"]: b for b in _bodies(broker, casa_broker.ROUTE_DEPOSIT)}
+    assert set(by_key) == {"other-1", "served-1"}
+    assert "tool_use_id" not in by_key["other-1"]
+    assert by_key["served-1"]["tool_use_id"] == ID
+
+
+def test_a_thread_left_from_an_earlier_call_does_not_name_a_later_one(broker, no_call_id,
+                                                                     monkeypatch):
+    """A Stop's worker that outlives its call can reach Casa while a later call is served
+    (its client's turn-deadline check queues a continuation): that request names no call,
+    while the call being served names its own."""
+    go, done = threading.Event(), threading.Event()
+    binding = broker.requester["binding_ref"]
+
+    def stale_worker():
+        if go.wait(10):
+            try:
+                casa_broker.request_continuation(binding, "run1", "next_run")
+            finally:
+                done.set()
+
+    def tool_call(name, arguments):
+        casa_broker.deposit_message("notice", "From the call.", key="served-1")
+        go.set()
+        assert done.wait(10)
+        return "done", False
+
+    monkeypatch.setattr(tooling, "call", tool_call)
+    worker = threading.Thread(target=stale_worker, daemon=True)
+    worker.start()
+    try:
+        resp = browser_server.handle(_tools_call(meta={"claudecode/toolUseId": ID}))
+        assert resp["result"]["isError"] is False
+    finally:
+        go.set()
+        worker.join(10)
+    assert not worker.is_alive()
+    (cont,) = _bodies(broker, casa_broker.ROUTE_CONTINUE)
+    (dep,) = _bodies(broker, casa_broker.ROUTE_DEPOSIT)
+    assert "tool_use_id" not in cont
+    assert dep["tool_use_id"] == ID

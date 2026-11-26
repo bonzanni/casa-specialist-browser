@@ -78,12 +78,12 @@ def _call(params: dict) -> tuple[str, bool]:
     name = params.get("name")
     if not isinstance(name, str):
         return copy_text.UNKNOWN_TOOL, True
-    # kept for this call only: the loop handles one call at a time
-    casa_broker.CALL_ID = _call_id(params)
+    # kept for this call, and for the thread serving it, only
+    casa_broker.set_call_id(_call_id(params))
     try:
         return tooling.call(name, params.get("arguments"))
     finally:
-        casa_broker.CALL_ID = None
+        casa_broker.set_call_id(None)
 
 
 def handle(req) -> dict | None:

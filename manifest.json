@@ -15,7 +15,7 @@
     {
       "kind": "plugin/implementation",
       "identifier": "browser",
-      "digest": "sha256:33467f5e6d5fc2f930a655fec99198a24e33ffc109ae6be2243816f933abfd19",
+      "digest": "sha256:de1784dc6a61b1371462120df7e2d5d3a3e0f02d120e13db6376ee76173f9039",
       "source": {
         "type": "bundled",
         "path": "plugins/browser"
