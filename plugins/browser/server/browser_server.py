@@ -15,6 +15,7 @@ import logging
 import os
 import sys
 
+import casa_broker
 import copy_text
 import pairing
 import tooling
@@ -41,6 +42,9 @@ def server_version(root: str | None = None) -> str:
         return SERVER_VERSION
     return f"{SERVER_VERSION}+{revision.removeprefix('git:')[:12]}"
 DEFAULT_PROTOCOL = "2024-11-05"
+#: where a `tools/call` request's metadata names the call
+CALL_ID_KEY = "claudecode/toolUseId"
+MAX_CALL_ID = 128
 
 #: name -> {"description", "schema", "fn", "slot"}
 TOOLS = tooling.TOOLS
@@ -62,11 +66,24 @@ def _tool_defs() -> list[dict]:
              "inputSchema": spec["schema"]} for name, spec in TOOLS.items()]
 
 
+def _call_id(params: dict) -> str | None:
+    """The call's id from the request's metadata: a non-empty string of at most
+    `MAX_CALL_ID` characters, else None (Casa's own calls send no metadata)."""
+    meta = params.get("_meta")
+    value = meta.get(CALL_ID_KEY) if isinstance(meta, dict) else None
+    return value if isinstance(value, str) and 0 < len(value) <= MAX_CALL_ID else None
+
+
 def _call(params: dict) -> tuple[str, bool]:
     name = params.get("name")
     if not isinstance(name, str):
         return copy_text.UNKNOWN_TOOL, True
-    return tooling.call(name, params.get("arguments"))
+    # kept for this call only: the loop handles one call at a time
+    casa_broker.CALL_ID = _call_id(params)
+    try:
+        return tooling.call(name, params.get("arguments"))
+    finally:
+        casa_broker.CALL_ID = None
 
 
 def handle(req) -> dict | None:

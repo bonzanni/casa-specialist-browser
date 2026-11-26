@@ -70,12 +70,12 @@ def test_manifest_shape():
                       "dependencies", "checksum"}
     assert m["api_version"] == "casa.specialist-component/v1"
     assert m["component_id"] == "casa/browser"
-    assert m["version"] == "0.1.35"
-    assert m["default_persona"]["ref"] == "casa/fido@0.1.35"
+    assert m["version"] == "0.1.36"
+    assert m["default_persona"]["ref"] == "casa/fido@0.1.36"
     deps = m["dependencies"]
     assert [d["kind"] for d in deps] == ["persona", "plugin/implementation"]
     persona, plugin = deps
-    assert persona["identifier"] == "casa/fido@0.1.35"
+    assert persona["identifier"] == "casa/fido@0.1.36"
     assert set(persona) == {"kind", "identifier", "digest"}
     assert persona["digest"] == m["default_persona"]["checksum"]
     assert plugin["identifier"] == "browser"
@@ -229,7 +229,7 @@ def test_persona_shape():
     persona = yaml.safe_load((pack / "persona.yaml").read_text(encoding="utf-8"))
     assert persona["api_version"] == "casa.persona/v1"
     assert persona["id"] == "casa/fido"
-    assert persona["version"] == "0.1.35"
+    assert persona["version"] == "0.1.36"
     assert persona["identity"]["display_name"] == "Fido"
     assert persona["relationship_posture"] == "professional"
     assert persona["traits"] == {"warmth": 3, "formality": 2, "candor": 5,
@@ -259,7 +259,7 @@ p = persona_pack.load_persona_pack(root / "persona/pack", root / "persona/manife
 print(json.dumps({{"id": p.persona_id, "version": p.version,
                   "name": p.identity["display_name"]}}))
 """)
-    assert got == {"id": "casa/fido", "version": "0.1.35", "name": "Fido"}
+    assert got == {"id": "casa/fido", "version": "0.1.36", "name": "Fido"}
 
 
 def test_plugin_manifest_shape():

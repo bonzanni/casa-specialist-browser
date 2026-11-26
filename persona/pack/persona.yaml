@@ -1,6 +1,6 @@
 api_version: casa.persona/v1
 id: casa/fido
-version: 0.1.35
+version: 0.1.36
 trait_schema_version: 1
 identity:
   display_name: Fido

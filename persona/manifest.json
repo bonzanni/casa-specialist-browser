@@ -17,8 +17,8 @@
       "path": "persona.yaml",
       "type": "file",
       "executable": false,
-      "checksum": "sha256:6704a3ab1d90efaf2a34ad4d3e5b03c7904bcd109db8b4e87a18f0c289b1c4de"
+      "checksum": "sha256:8a5413ff7bf9466e87d9177edca1580e8c0f1de197cbc199f50b154e53710104"
     }
   ],
-  "checksum": "sha256:7c0accce0ca192c6a21a1d6c49f765d5cf976769e3a9e25f97d3c1100e029097"
+  "checksum": "sha256:089bf5c4a607584f0d22ab986b86703f93a06bdd3bc7e4ef586c134cbba93644"
 }

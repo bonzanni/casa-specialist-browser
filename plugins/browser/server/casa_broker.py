@@ -19,6 +19,10 @@ the operator's words from the call's recorded origin, never from the request.
   windows). Page text reaches it from `run_read`'s `to_pad`, and `run_act`'s
   `text_from` types a section, so neither passes through the model.
 
+Every request also names the tool call it serves, as `tool_use_id`, when the
+server has the call's id (`CALL_ID`, set for that call only); with none the
+member is left out.
+
 Nothing Casa sends back is echoed: an answer must have its documented shape,
 an error must look like one of Casa's codes, or the failure is reported by a
 fixed label (`broker_env_missing`, `broker_unreachable:<Class>`,
@@ -55,6 +59,9 @@ ROUTE_CONTINUE = "/internal/broker/continue"
 ROUTE_DELIVERY_STATUS = "/internal/broker/delivery-status"
 ROUTE_ACTION_JUDGEMENT = "/internal/broker/action-judgement"
 ROUTE_PAD = "/internal/broker/pad"
+
+#: the id of the tool call the server is handling, or None (no id, or no call)
+CALL_ID: str | None = None
 
 TIMEOUT_S = 10.0
 #: the check's own call: Casa's model call is bounded at 90 s, so the
@@ -146,7 +153,8 @@ class _UnixHTTP(http.client.HTTPConnection):
 
 def _post(route: str, fields: dict, fail, *, timeout: float = TIMEOUT_S,
           max_bytes: int = MAX_RESPONSE_BYTES) -> dict:
-    """POST `fields` plus this session's client id; the answer as a dict, or
+    """POST `fields` plus this session's client id (and the call's id when there
+    is one); the answer as a dict, or
     `fail(code)` raised. A Casa error code is raised as itself (its `message`, if
     any, is never read). `timeout` bounds the connect and every read (a timeout
     is `broker_unreachable`); an answer over `max_bytes` is `broker_bad_response`."""
@@ -155,6 +163,8 @@ def _post(route: str, fields: dict, fail, *, timeout: float = TIMEOUT_S,
     if not path or not client:
         raise fail("broker_env_missing")
     body = dict(fields, client=client)
+    if CALL_ID is not None:
+        body["tool_use_id"] = CALL_ID
     conn = _UnixHTTP(path, timeout)
     try:
         conn.request("POST", route, body=json.dumps(body).encode("utf-8"),
