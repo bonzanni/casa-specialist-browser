@@ -19,6 +19,12 @@ the operator's words from the call's recorded origin, never from the request.
   windows). Page text reaches it from `run_read`'s `to_pad`, and `run_act`'s
   `text_from` types a section, so neither passes through the model.
 
+Every request also names the tool call it serves, as `tool_use_id`, when the
+server has the call's id (`set_call_id`, for that call only). The id belongs
+to the thread that serves the call: a request sent from any other thread (a
+Stop's worker that outlived its call) leaves the member out, as does a call
+with no id.
+
 Nothing Casa sends back is echoed: an answer must have its documented shape,
 an error must look like one of Casa's codes, or the failure is reported by a
 fixed label (`broker_env_missing`, `broker_unreachable:<Class>`,
@@ -32,6 +38,7 @@ import json
 import os
 import re
 import socket
+import threading
 from typing import NamedTuple
 
 ENV_CLIENT = "CASA_BROKER_CLIENT"
@@ -55,6 +62,10 @@ ROUTE_CONTINUE = "/internal/broker/continue"
 ROUTE_DELIVERY_STATUS = "/internal/broker/delivery-status"
 ROUTE_ACTION_JUDGEMENT = "/internal/broker/action-judgement"
 ROUTE_PAD = "/internal/broker/pad"
+
+#: the id of the tool call the server is handling, kept per thread: only the
+#: thread that serves the call sees it
+_CALL = threading.local()
 
 TIMEOUT_S = 10.0
 #: the check's own call: Casa's model call is bounded at 90 s, so the
@@ -85,6 +96,16 @@ JUDGEMENT_KINDS = ("action", "rejudge", "login_item", "signin", "sign_in")
 SHA256_HEX_RE = re.compile(r"^[0-9a-f]{64}$")
 #: Casa Browser's bound on a verdict's `latency_ms` (`protocol.parse_judgement_verdict`)
 MAX_LATENCY_MS = 10 ** 7
+
+
+def set_call_id(value: str | None) -> None:
+    """Name (or, with None, stop naming) the call this thread serves."""
+    _CALL.id = value
+
+
+def call_id() -> str | None:
+    """The id of the call this thread serves, or None."""
+    return getattr(_CALL, "id", None)
 
 
 class DepositFailed(Exception):
@@ -146,7 +167,8 @@ class _UnixHTTP(http.client.HTTPConnection):
 
 def _post(route: str, fields: dict, fail, *, timeout: float = TIMEOUT_S,
           max_bytes: int = MAX_RESPONSE_BYTES) -> dict:
-    """POST `fields` plus this session's client id; the answer as a dict, or
+    """POST `fields` plus this session's client id (and the call's id when there
+    is one); the answer as a dict, or
     `fail(code)` raised. A Casa error code is raised as itself (its `message`, if
     any, is never read). `timeout` bounds the connect and every read (a timeout
     is `broker_unreachable`); an answer over `max_bytes` is `broker_bad_response`."""
@@ -155,6 +177,9 @@ def _post(route: str, fields: dict, fail, *, timeout: float = TIMEOUT_S,
     if not path or not client:
         raise fail("broker_env_missing")
     body = dict(fields, client=client)
+    served = call_id()
+    if served is not None:
+        body["tool_use_id"] = served
     conn = _UnixHTTP(path, timeout)
     try:
         conn.request("POST", route, body=json.dumps(body).encode("utf-8"),
